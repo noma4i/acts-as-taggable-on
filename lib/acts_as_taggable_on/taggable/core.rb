@@ -194,18 +194,22 @@ module ActsAsTaggableOn::Taggable
       value = new_list.is_a?(Array) ? ActsAsTaggableOn::TagList.new(new_list) : new_list
       attrib = "#{context.to_s.singularize}_list"
 
-      if attributes_changed_by_setter.include?(attrib)
+      @changed_attributes ||= changed_attributes.reverse_merge(mutations_from_database.changed_values)
+
+      if changed_attributes.include?(attrib)
         # The attribute already has an unsaved change.
-        old = attributes_changed_by_setter[attrib]
-        attributes_changed_by_setter.delete(attrib) if old.to_s == value.to_s
+        old = changed_attributes[attrib]
+        @changed_attributes.delete(attrib) if old.to_s == value.to_s
       else
         old = tag_list_on(context)
         if self.class.preserve_tag_order
-          set_attribute_was(attrib, old) if old.to_s != value.to_s
+          @changed_attributes[attrib] = old if old.to_s != value.to_s
         else
-          set_attribute_was(attrib, old.to_s) if old.sort != ActsAsTaggableOn.default_parser.new(value).parse.sort
+          @changed_attributes[attrib] = old.to_s if old.sort != ActsAsTaggableOn.default_parser.new(value).parse.sort
         end
       end
+
+      @cached_changed_attributes = @changed_attributes.freeze
     end
 
     def reload(*args)
