@@ -15,17 +15,18 @@ module ActsAsTaggableOn::Taggable
             def #{tag_type}_list_changed?
               changed_attributes.include?("#{tag_type}_list")
             end
-
             def #{tag_type}_list_was
               changed_attributes.include?("#{tag_type}_list") ? changed_attributes["#{tag_type}_list"] : __send__("#{tag_type}_list")
             end
-
             def #{tag_type}_list_change
               [changed_attributes['#{tag_type}_list'], __send__('#{tag_type}_list')] if changed_attributes.include?("#{tag_type}_list")
             end
-
             def #{tag_type}_list_changes
               [changed_attributes['#{tag_type}_list'], __send__('#{tag_type}_list')] if changed_attributes.include?("#{tag_type}_list")
+            end
+            private
+            def attribute_change(attr)
+              [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
             end
           RUBY
 
